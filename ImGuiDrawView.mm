@@ -90,8 +90,6 @@ static bool MenDeal = true;
 
 }
 
-
-
 #pragma mark - Interaction
 
 - (void)updateIOWithTouchEvent:(UIEvent *)event
@@ -149,8 +147,7 @@ static bool MenDeal = true;
     
     id<MTLCommandBuffer> commandBuffer = [self.commandQueue commandBuffer];
     
-
-//Define your bool/function in here
+    //Define your bool/function in here
     static bool show_s0 = false;    
     static bool show_s1 = false;    
     static bool show_s2 = false;    
@@ -165,19 +162,15 @@ static bool MenDeal = true;
     static bool show_s11 = false;     
     static bool show_s12 = false;     
 
-//Define active function
+    //Define active function
     static bool show_s0_active = false;
-    
         
-        if (MenDeal == true) {
-            [self.view setUserInteractionEnabled:YES];
-        } else if (MenDeal == false) {
-            [self.view setUserInteractionEnabled:NO];
-        }
+    [self.view setUserInteractionEnabled:(MenDeal ? YES : NO)];
 
         MTLRenderPassDescriptor* renderPassDescriptor = view.currentRenderPassDescriptor;
         if (renderPassDescriptor != nil)
         {
+            //imgui setup 
             id <MTLRenderCommandEncoder> renderEncoder = [commandBuffer renderCommandEncoderWithDescriptor:renderPassDescriptor];
             [renderEncoder pushDebugGroup:@"ImGui Jane"];
 
@@ -192,6 +185,7 @@ static bool MenDeal = true;
             
             ImGui::SetNextWindowPos(ImVec2(x, y), ImGuiCond_FirstUseEver);
             ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_FirstUseEver);
+            
             
             if (MenDeal == true)
             {                
@@ -210,18 +204,16 @@ static bool MenDeal = true;
             }
             ImDrawList* draw_list = ImGui::GetBackgroundDrawList();
 
-
-
-//Okay so this is the space we place our cheat function
-//This function below maybe outdated, idk. But it's an example how we can use
+            //Using the imgui menu bools to trigger our hex byte patching cheat function
+    
+    //This function below maybe outdated, idk. But it's an example how we can use
     if(show_s0){
         if(show_s0_active == NO){
             vm_unity(ENCRYPTOFFSET("0x517A154"), strtoul(ENCRYPTHEX("0x360080D2"), nullptr, 0));
             vm(ENCRYPTOFFSET("0x10517A154"), strtoul(ENCRYPTHEX("0x360080D2"), nullptr, 0));
             }
         show_s0_active = YES;
-    }
-    else{
+    } else {
         if(show_s0_active == YES){
             vm_unity(ENCRYPTOFFSET("0x517A154"), strtoul(ENCRYPTHEX("0xF60302AA"), nullptr, 0));
             vm(ENCRYPTOFFSET("0x10517A154"), strtoul(ENCRYPTHEX("0xF60302AA"), nullptr, 0));
@@ -229,14 +221,17 @@ static bool MenDeal = true;
         show_s0_active = NO;
     }
         
-//Hook function example
+    //Hooking a function constructor
     static dispatch_once_t onceToken;
-            dispatch_once(&onceToken, ^{
-                //use DobbyHook, same kind of MSHookFunction but working on JIT, Dopamine!
-                DobbyHook((void *)(getRealOffset(ENCRYPTOFFSET("0x5F145F8"))), (void *)_huy, (void **)&huy);
-            });
+    dispatch_once(&onceToken, ^{
+          //use DobbyHook, same use as MSHookFunction but working on JIT, Dopamine!
+          DobbyHook((void *)(getRealOffset(ENCRYPTOFFSET("0x5F145F8"))), (void *)_huy, (void **)&huy);
+    });
 
 
+
+
+ //------------------ call imgui render to draw menu and other 'shaders'
             ImGui::Render();
             ImDrawData* draw_data = ImGui::GetDrawData();
             ImGui_ImplMetal_RenderDrawData(draw_data, commandBuffer, renderEncoder);
