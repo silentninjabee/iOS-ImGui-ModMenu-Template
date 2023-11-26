@@ -1,4 +1,3 @@
-//Require standard library
 #import <Metal/Metal.h>
 #import <MetalKit/MetalKit.h>
 #import <Foundation/Foundation.h>
@@ -20,6 +19,23 @@
 #define kHeight [UIScreen mainScreen].bounds.size.height
 #define kScale [UIScreen mainScreen].scale
 
+/*
+    Components:
+ 
+ - Metal: The code leverages the Metal framework for graphics rendering and GPU acceleration.
+ - ImGui: The ImGui library is used to create and manage the graphical elements of the application's user interface.
+ - Patch Library: Various patching and hooking functions are employed to modify the behavior of the target application dynamically.
+ - Touch Event Handling: The code handles touch events to allow user interactions with the GUI.
+ 
+ Key Features:
+ 
+ - The `MenDeal` boolean variable controls whether the menu is open or closed.
+ - The GUI elements are drawn using ImGui, offering features like checkboxes and text display.
+ - The code includes patching functions to enable or disable specific in-game cheats based on user interactions with the GUI.
+ - It utilizes Metal's rendering capabilities to display the GUI on the screen.
+ - Touch events are captured and processed to update the GUI's interaction state
+     */
+ 
 @interface ImGuiDrawView () <MTKViewDelegate>
 @property (nonatomic, strong) id <MTLDevice> device;
 @property (nonatomic, strong) id <MTLCommandQueue> commandQueue;
@@ -36,27 +52,20 @@ huy(instance);
 
 static bool MenDeal = true;
 
-
 - (instancetype)initWithNibName:(nullable NSString *)nibNameOrNil bundle:(nullable NSBundle *)nibBundleOrNil
 {
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
-
     _device = MTLCreateSystemDefaultDevice();
     _commandQueue = [_device newCommandQueue];
 
     if (!self.device) abort();
-
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
-
-    ImGui::StyleColorsClassic();
-    
+    ImGui::StyleColorsClassic(); 
     ImFont* font = io.Fonts->AddFontFromMemoryCompressedTTF((void*)Honkai_compressed_data, Honkai_compressed_size, 45.0f, NULL, io.Fonts->GetGlyphRangesDefault());
-    
     ImGui_ImplMetal_Init(_device);
-
-    return self;
+return self;
 }
 
 + (void)showChange:(BOOL)open
@@ -71,27 +80,21 @@ static bool MenDeal = true;
 
 - (void)loadView
 {
-
- 
-
     CGFloat w = [UIApplication sharedApplication].windows[0].rootViewController.view.frame.size.width;
     CGFloat h = [UIApplication sharedApplication].windows[0].rootViewController.view.frame.size.height;
     self.view = [[MTKView alloc] initWithFrame:CGRectMake(0, 0, w, h)];
 }
 
 - (void)viewDidLoad {
-    [super viewDidLoad];
-    
+ [super viewDidLoad];
     self.mtkView.device = self.device;
     self.mtkView.delegate = self;
     self.mtkView.clearColor = MTLClearColorMake(0, 0, 0, 0);
     self.mtkView.backgroundColor = [UIColor colorWithRed:0 green:0 blue:0 alpha:0];
     self.mtkView.clipsToBounds = YES;
-
 }
 
 #pragma mark - Interaction
-
 - (void)updateIOWithTouchEvent:(UIEvent *)event
 {
     UITouch *anyTouch = event.allTouches.anyObject;
@@ -135,8 +138,7 @@ static bool MenDeal = true;
 
 - (void)drawInMTKView:(MTKView*)view
 {
-   
-    
+    //main function
     ImGuiIO& io = ImGui::GetIO();
     io.DisplaySize.x = view.bounds.size.width;
     io.DisplaySize.y = view.bounds.size.height;
@@ -147,7 +149,7 @@ static bool MenDeal = true;
     
     id<MTLCommandBuffer> commandBuffer = [self.commandQueue commandBuffer];
     
-    //Define your bool/function in here
+    //Define your bool/function in here for local scope... can also use objc class and set a @property in the class if extending the cheat for larger complex tasks
     static bool show_s0 = false;    
     static bool show_s1 = false;    
     static bool show_s2 = false;    
@@ -184,29 +186,23 @@ static bool MenDeal = true;
             CGFloat y = (([UIApplication sharedApplication].windows[0].rootViewController.view.frame.size.height) - 300) / 2;
             
             ImGui::SetNextWindowPos(ImVec2(x, y), ImGuiCond_FirstUseEver);
-            ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_FirstUseEver);
-            
+            ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_FirstUseEver); 
             
             if (MenDeal == true)
-            {                
-                ImGui::Begin("Little 34306 JIT Menu!", &MenDeal);
+            {     
+            // IMGUI design from begin to end, entitely inside this condition
+              ImGui::Begin("Little 34306 JIT Menu!", &MenDeal);
                 ImGui::Text("Use 3 Fingers Click 3 Times Open Menu\n2 Finger Tap Screen 2 Times Hide Menu\n\nOpen In Lobby");
-                
                 ImGui::TableNextColumn();
-
                 ImGui::Checkbox("Map Cheat Enable", &show_s0);
-
                 ImGui::Text("Contact me on Telegram: @little34306 (%.3f ms/frame (%.1f FPS))\nThis menu support Xina, Dopamine, unc0ver, palera1n\nand Non-jailbreak too!", 500.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-
-
-                ImGui::End();
-                
+              ImGui::End();   
             }
-            ImDrawList* draw_list = ImGui::GetBackgroundDrawList();
-
-            //Using the imgui menu bools to trigger our hex byte patching cheat function
-    
-    //This function below maybe outdated, idk. But it's an example how we can use
+            
+        ImDrawList* draw_list = ImGui::GetBackgroundDrawList();
+        
+//START MAIN CHEAT CODE HERE -----------------------------------------------------
+    //Using the imgui menu bools to trigger our hex byte patching cheat function
     if(show_s0){
         if(show_s0_active == NO){
             vm_unity(ENCRYPTOFFSET("0x517A154"), strtoul(ENCRYPTHEX("0x360080D2"), nullptr, 0));
@@ -229,9 +225,9 @@ static bool MenDeal = true;
     });
 
 
+//END CHEAT LOGIC
 
-
- //------------------ call imgui render to draw menu and other 'shaders'
+            //------------------ call imgui render to draw menu and other 'shaders'
             ImGui::Render();
             ImDrawData* draw_data = ImGui::GetDrawData();
             ImGui_ImplMetal_RenderDrawData(draw_data, commandBuffer, renderEncoder);
