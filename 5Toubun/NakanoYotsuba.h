@@ -23,6 +23,7 @@ struct MemoryFileInfo {
 MemoryFileInfo getBaseInfo() {
     MemoryFileInfo _info;
     std::string applicationsPath = "/private/var/containers/Bundle/Application";
+    //there is a better way to handle this than hardcoded path, just an example
     for (uint32_t i = 0; i < _dyld_image_count(); i++)
     {
         const char *name = _dyld_get_image_name(i);
@@ -70,7 +71,7 @@ uintptr_t getAbsoluteAddress(const char *fileName, uintptr_t address) {
     return info.address + address;
 }
 
-//change getRealOffset to another framework if you want, or NULL
+//change getRealOffset to another binary of the main game application, like ShooterGame (arkm), or NULL
 uint64_t getRealOffset(uint64_t offset){
     return getAbsoluteAddress("UnityFramework", offset);
 }
